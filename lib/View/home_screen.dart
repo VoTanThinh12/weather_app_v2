@@ -26,18 +26,11 @@ class _WeatherAppHomeScreenState extends ConsumerState<WeatherAppHomeScreen> {
   int _currentIndex = 0;
   int? selectedHourIndex;
   int currentHourIndex = -1;
-  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
     _fetchWeather();
-  }
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
   }
 
   Future<void> _fetchWeather() async {
@@ -56,7 +49,6 @@ class _WeatherAppHomeScreenState extends ConsumerState<WeatherAppHomeScreen> {
         country = forecast['location']?['country'] ?? '';
         isLoading = false;
         _findCurrentHour();
-        _scrollToCurrentHour();
       });
     } catch (e) {
       setState(() {
@@ -82,32 +74,9 @@ class _WeatherAppHomeScreenState extends ConsumerState<WeatherAppHomeScreen> {
       final hourTime = DateTime.parse(hourly[i]['time']);
       if (now.hour == hourTime.hour && now.day == hourTime.day) {
         currentHourIndex = i;
-        selectedHourIndex = i;
+        selectedHourIndex = i; // Set default selected to current hour
         break;
       }
-    }
-  }
-
-  void _scrollToCurrentHour() {
-    if (currentHourIndex >= 0 && hourly.isNotEmpty) {
-      // Đợi một chút để ListView được build xong
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (_scrollController.hasClients) {
-          // Tính toán vị trí để căn giữa item hiện tại
-          final itemWidth = 80.0; // Ước tính width của mỗi item
-          final screenWidth = MediaQuery.of(context).size.width;
-          final targetOffset =
-              (currentHourIndex * itemWidth) -
-              (screenWidth / 2) +
-              (itemWidth / 2);
-
-          _scrollController.animateTo(
-            targetOffset.clamp(0.0, _scrollController.position.maxScrollExtent),
-            duration: const Duration(milliseconds: 500),
-            curve: Curves.easeInOut,
-          );
-        }
-      });
     }
   }
 
@@ -252,17 +221,17 @@ class _WeatherAppHomeScreenState extends ConsumerState<WeatherAppHomeScreen> {
     final iconPath = currentValue['condition']?['icon'] as String? ?? '';
     final imageUrl = iconPath.isNotEmpty ? "https:$iconPath" : "";
 
-    return Column(
-      children: [
-        // Fixed header section
-        Container(
-          color: Theme.of(context).primaryColor,
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            children: [
-              if (isLoading)
-                const Center(child: CircularProgressIndicator())
-              else if (currentValue.isNotEmpty) ...[
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 20),
+          if (isLoading)
+            const Center(child: CircularProgressIndicator())
+          else if (currentValue.isNotEmpty)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
                 Text(
                   "$city${country.isNotEmpty ? ', $country' : ''}",
                   maxLines: 1,
@@ -298,215 +267,222 @@ class _WeatherAppHomeScreenState extends ConsumerState<WeatherAppHomeScreen> {
                     errorBuilder:
                         (context, error, stackTrace) => const Icon(Icons.error),
                   ),
-                const SizedBox(height: 20),
-                Container(
-                  height: 80,
-                  width: double.maxFinite,
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).primaryColor,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Theme.of(context).colorScheme.primary,
-                        offset: const Offset(1, 1),
-                        blurRadius: 10,
-                        spreadRadius: 1,
-                      ),
-                    ],
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      // Nhiệt độ (Max từ hourly data)
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.thermostat,
-                            color: Colors.orange,
-                            size: 30,
-                          ),
-                          Text(
-                            "${_getMaxTemperature().toInt()}°C",
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.secondary,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          Text(
-                            "Max Temp",
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.secondary,
-                            ),
-                          ),
-                        ],
-                      ),
-                      // Độ ẩm (Max từ hourly data)
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.water_drop, color: Colors.blue, size: 30),
-                          Text(
-                            "${_getMaxHumidity().toInt()}%",
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.secondary,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          Text(
-                            "Max Humidity",
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.secondary,
-                            ),
-                          ),
-                        ],
-                      ),
-                      // Gió (Max từ hourly data)
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.air, color: Colors.green, size: 30),
-                          Text(
-                            "${_getMaxWindSpeed().toInt()}km/h",
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.secondary,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          Text(
-                            "Max Wind",
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.secondary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ),
-
-        // Scrollable forecast section
-        Expanded(
-          child: Container(
-            decoration: BoxDecoration(
-              color: Theme.of(context).primaryColor,
-              border: Border(
-                top: BorderSide(color: Theme.of(context).colorScheme.secondary),
-              ),
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(40),
-              ),
-            ),
-            child: Column(
-              children: [
-                const SizedBox(height: 10),
                 Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 5,
-                  ),
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      "Today Forecast",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.secondary,
-                      ),
+                  padding: const EdgeInsets.all(15),
+                  child: Container(
+                    height: 80,
+                    width: double.maxFinite,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).primaryColor,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Theme.of(context).colorScheme.primary,
+                          offset: const Offset(1, 1),
+                          blurRadius: 10,
+                          spreadRadius: 1,
+                        ),
+                      ],
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        // Nhiệt độ (Max từ hourly data)
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.thermostat,
+                              color: Colors.orange,
+                              size: 30,
+                            ),
+                            Text(
+                              "${_getMaxTemperature().toInt()}°C",
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.secondary,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              "Max Temp",
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.secondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                        // Độ ẩm (Max từ hourly data)
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.water_drop,
+                              color: Colors.blue,
+                              size: 30,
+                            ),
+                            Text(
+                              "${_getMaxHumidity().toInt()}%",
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.secondary,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              "Max Humidity",
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.secondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                        // Gió (Max từ hourly data)
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.air, color: Colors.green, size: 30),
+                            Text(
+                              "${_getMaxWindSpeed().toInt()}km/h",
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.secondary,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              "Max Wind",
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.secondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
                 ),
-                Divider(color: Theme.of(context).colorScheme.secondary),
-                const SizedBox(height: 5),
-                Expanded(
-                  child: ListView.builder(
-                    controller: _scrollController,
-                    scrollDirection: Axis.horizontal,
-                    shrinkWrap: true,
-                    itemCount: hourly.length,
-                    itemBuilder: (context, index) {
-                      final hour = hourly[index];
-                      final now = DateTime.now();
-                      final hourTime = DateTime.parse(hour['time']);
-                      final isCurrentHour =
-                          now.hour == hourTime.hour && now.day == hourTime.day;
-                      final isSelected = selectedHourIndex == index;
-
-                      return GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            selectedHourIndex = index;
-                          });
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.all(6),
-                          child: Container(
-                            width: 80, // Fixed width để tính toán scroll
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color:
-                                  isCurrentHour
-                                      ? Colors.orangeAccent
-                                      : isSelected
-                                      ? Colors.blueAccent.withOpacity(0.7)
-                                      : Colors.black38,
-                              borderRadius: BorderRadius.circular(40),
-                            ),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  isCurrentHour
-                                      ? "Now"
-                                      : formatTime(hour['time']),
-                                  style: TextStyle(
-                                    color:
-                                        Theme.of(context).colorScheme.secondary,
-                                    fontWeight: FontWeight.w500,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Image.network(
-                                  "https:${hour['condition']?['icon'] ?? ''}",
-                                  width: 40,
-                                  height: 40,
-                                  fit: BoxFit.contain,
-                                  errorBuilder:
-                                      (context, error, stackTrace) =>
-                                          const Icon(Icons.error),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  "${hour['temp_c'] ?? 'N/A'}°C",
-                                  style: TextStyle(
-                                    color:
-                                        Theme.of(context).colorScheme.secondary,
-                                    fontWeight: FontWeight.w500,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ],
+                const SizedBox(height: 20),
+                Container(
+                  height: 200,
+                  width: double.maxFinite,
+                  decoration: BoxDecoration(
+                    border: Border(
+                      top: BorderSide(
+                        color: Theme.of(context).colorScheme.secondary,
+                      ),
+                    ),
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(40),
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 10),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 5,
+                        ),
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            "Today Forecast",
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context).colorScheme.secondary,
                             ),
                           ),
                         ),
-                      );
-                    },
+                      ),
+                      Divider(color: Theme.of(context).colorScheme.secondary),
+                      const SizedBox(height: 5),
+                      Expanded(
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          shrinkWrap: true,
+                          itemCount: hourly.length,
+                          itemBuilder: (context, index) {
+                            final hour = hourly[index];
+                            final now = DateTime.now();
+                            final hourTime = DateTime.parse(hour['time']);
+                            final isCurrentHour =
+                                now.hour == hourTime.hour &&
+                                now.day == hourTime.day;
+                            final isSelected = selectedHourIndex == index;
+
+                            return GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  selectedHourIndex = index;
+                                });
+                              },
+                              child: Padding(
+                                padding: const EdgeInsets.all(6),
+                                child: Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color:
+                                        isCurrentHour
+                                            ? Colors.orangeAccent
+                                            : isSelected
+                                            ? Colors.blueAccent.withOpacity(0.7)
+                                            : Colors.black38,
+                                    borderRadius: BorderRadius.circular(40),
+                                  ),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        isCurrentHour
+                                            ? "Now"
+                                            : formatTime(hour['time']),
+                                        style: TextStyle(
+                                          color:
+                                              Theme.of(
+                                                context,
+                                              ).colorScheme.secondary,
+                                          fontWeight: FontWeight.w500,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Image.network(
+                                        "https:${hour['condition']?['icon'] ?? ''}",
+                                        width: 40,
+                                        height: 40,
+                                        fit: BoxFit.contain,
+                                        errorBuilder:
+                                            (context, error, stackTrace) =>
+                                                const Icon(Icons.error),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        "${hour['temp_c'] ?? 'N/A'}°C",
+                                        style: TextStyle(
+                                          color:
+                                              Theme.of(
+                                                context,
+                                              ).colorScheme.secondary,
+                                          fontWeight: FontWeight.w500,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 // Thêm thông tin chi tiết
                 _buildDetailInfo(),
-                const SizedBox(height: 20),
               ],
             ),
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -520,7 +496,6 @@ class _WeatherAppHomeScreenState extends ConsumerState<WeatherAppHomeScreen> {
       backgroundColor: Theme.of(context).primaryColor,
       appBar: AppBar(
         backgroundColor: Theme.of(context).primaryColor,
-        elevation: 0,
         actions: [
           const SizedBox(width: 25),
           SizedBox(
