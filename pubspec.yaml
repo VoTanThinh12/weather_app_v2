@@ -38,7 +38,7 @@ dependencies:
   intl: ^0.20.2
   google_fonts: ^6.2.1
   flutter_riverpod: ^2.6.1
-  fl_chart: ^0.63.0
+  fl_chart: ^0.68.0
 
 dev_depe ndencies:
   flutter_test:

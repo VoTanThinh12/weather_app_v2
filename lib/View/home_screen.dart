@@ -3,7 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:weather_app/Provider/theme_provider.dart';
 import 'package:weather_app/Service/api_service.dart';
-import 'package:weather_app/View/weekly_forecast.dart'; // Ensure correct file name
+import 'package:weather_app/View/weekly_forecast.dart';
+import 'package:weather_app/View/chart_screen.dart'; // Import chart screen
 
 class WeatherAppHomeScreen extends ConsumerStatefulWidget {
   const WeatherAppHomeScreen({super.key});
@@ -17,12 +18,12 @@ class _WeatherAppHomeScreenState extends ConsumerState<WeatherAppHomeScreen> {
   final _weatherService = WeatherApiService();
   String city = "Ho Chi Minh";
   String country = '';
-  Map<String, dynamic> currentValue = {};
-  List<dynamic> hourly = [];
-  List<dynamic> past7Days = [];
-  List<dynamic> next7Days = [];
+  Map currentValue = {};
+  List hourly = [];
+  List past7Days = [];
+  List next7Days = [];
   bool isLoading = false;
-  int _currentIndex = 0;
+  int _currentIndex = 0; // Thay đổi để hỗ trợ 3 tabs
 
   @override
   void initState() {
@@ -269,6 +270,7 @@ class _WeatherAppHomeScreenState extends ConsumerState<WeatherAppHomeScreen> {
                             final isCurrentHour =
                                 now.hour == hourTime.hour &&
                                 now.day == hourTime.day;
+
                             return Padding(
                               padding: const EdgeInsets.all(6),
                               child: Container(
@@ -391,10 +393,7 @@ class _WeatherAppHomeScreenState extends ConsumerState<WeatherAppHomeScreen> {
             onTap: notifier.toggleTheme,
             child: Icon(
               isDark ? Icons.light_mode : Icons.dark_mode,
-              color:
-                  Theme.of(
-                    context,
-                  ).colorScheme.secondary, // Improved visibility
+              color: Theme.of(context).colorScheme.secondary,
               size: 30,
             ),
           ),
@@ -404,7 +403,8 @@ class _WeatherAppHomeScreenState extends ConsumerState<WeatherAppHomeScreen> {
       body:
           _currentIndex == 0
               ? _buildTodayScreen()
-              : WeeklyForecast(
+              : _currentIndex == 1
+              ? WeeklyForecast(
                 city: city,
                 currentValue: currentValue,
                 pastWeek: past7Days,
@@ -414,6 +414,12 @@ class _WeatherAppHomeScreenState extends ConsumerState<WeatherAppHomeScreen> {
                     _currentIndex = 0;
                   });
                 },
+              )
+              : ChartScreen(
+                city: city,
+                currentValue: currentValue,
+                hourly: hourly,
+                next7Days: next7Days,
               ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
@@ -425,12 +431,14 @@ class _WeatherAppHomeScreenState extends ConsumerState<WeatherAppHomeScreen> {
         backgroundColor: Colors.black87,
         selectedItemColor: Colors.orangeAccent,
         unselectedItemColor: Colors.white,
+        type: BottomNavigationBarType.fixed, // Thêm dòng này để hiển thị 3 tabs
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.today), label: 'Today'),
           BottomNavigationBarItem(
             icon: Icon(Icons.calendar_today),
             label: 'Weekly',
           ),
+          BottomNavigationBarItem(icon: Icon(Icons.bar_chart), label: 'Charts'),
         ],
       ),
     );
