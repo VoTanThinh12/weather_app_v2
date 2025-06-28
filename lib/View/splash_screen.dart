@@ -43,7 +43,7 @@ class _SplashScreenState extends State<SplashScreen> {
             children: [
               Center(
                 child: Text(
-                  "Weather Forecast\n for Your City ",
+                  "Dự Báo \n Thời Tiết Tại Thành Phố Của Bạn ",
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 32,

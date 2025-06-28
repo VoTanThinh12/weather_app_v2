@@ -60,9 +60,7 @@ class _WeatherAppHomeScreenState extends ConsumerState<WeatherAppHomeScreen> {
       });
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text(
-            "Thành phố không tìm thấy hoặc không hợp lệ. Vui lòng thử thành phố khác",
-          ),
+          content: Text("City not found or invalid. Please try another city"),
         ),
       );
     }
@@ -496,6 +494,8 @@ class _WeatherAppHomeScreenState extends ConsumerState<WeatherAppHomeScreen> {
       backgroundColor: Theme.of(context).primaryColor,
       appBar: AppBar(
         backgroundColor: Theme.of(context).primaryColor,
+        scrolledUnderElevation: 0,
+        surfaceTintColor: Colors.transparent,
         actions: [
           const SizedBox(width: 25),
           SizedBox(
@@ -506,7 +506,7 @@ class _WeatherAppHomeScreenState extends ConsumerState<WeatherAppHomeScreen> {
               onSubmitted: (value) {
                 if (value.trim().isEmpty) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Nhập tên thành phố.")),
+                    const SnackBar(content: Text("Enter city name.")),
                   );
                   return;
                 }
@@ -514,7 +514,7 @@ class _WeatherAppHomeScreenState extends ConsumerState<WeatherAppHomeScreen> {
                 _fetchWeather();
               },
               decoration: InputDecoration(
-                labelText: "Tìm kiếm thành phố",
+                labelText: "Search city",
                 prefixIcon: Icon(
                   Icons.search,
                   color: Theme.of(context).colorScheme.surface,

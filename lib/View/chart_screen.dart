@@ -56,7 +56,7 @@ class _ChartScreenState extends ConsumerState<ChartScreen> {
 
   Widget buildTemperatureChart() {
     if (widget.hourly.isEmpty) {
-      return const Center(child: Text('Không có dữ liệu nhiệt độ'));
+      return const Center(child: Text('No temperature data available'));
     }
 
     List<FlSpot> spots = [];
@@ -213,7 +213,7 @@ class _ChartScreenState extends ConsumerState<ChartScreen> {
 
   Widget buildHumidityChart() {
     if (widget.hourly.isEmpty) {
-      return const Center(child: Text('Không có dữ liệu độ ẩm'));
+      return const Center(child: Text('No humidity data available'));
     }
 
     List<FlSpot> spots = [];
@@ -372,7 +372,7 @@ class _ChartScreenState extends ConsumerState<ChartScreen> {
 
   Widget buildWindChart() {
     if (widget.hourly.isEmpty) {
-      return const Center(child: Text('Không có dữ liệu gió'));
+      return const Center(child: Text('No wind data available'));
     }
 
     List<FlSpot> spots = [];
@@ -616,7 +616,7 @@ class _ChartScreenState extends ConsumerState<ChartScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Biểu đồ thời tiết - ${widget.city}',
+                '${widget.city}',
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
@@ -631,9 +631,9 @@ class _ChartScreenState extends ConsumerState<ChartScreen> {
                 child: ListView(
                   scrollDirection: Axis.horizontal,
                   children: [
-                    _buildChartSelector(0, 'Nhiệt độ', Icons.thermostat),
-                    _buildChartSelector(1, 'Độ ẩm', Icons.water_drop),
-                    _buildChartSelector(2, 'Gió', Icons.air),
+                    _buildChartSelector(0, 'Temp', Icons.thermostat),
+                    _buildChartSelector(1, 'Humidity', Icons.water_drop),
+                    _buildChartSelector(2, 'Wind', Icons.air),
                   ],
                 ),
               ),
@@ -746,13 +746,13 @@ class _ChartScreenState extends ConsumerState<ChartScreen> {
   String _getChartTitle() {
     switch (selectedChartIndex) {
       case 0:
-        return 'Biểu đồ nhiệt độ 24 giờ';
+        return '24-Hour Temperature Chart';
       case 1:
-        return 'Biểu đồ độ ẩm 24 giờ';
+        return '24-Hour Humidity Chart';
       case 2:
-        return 'Biểu đồ tốc độ gió 24 giờ';
+        return '24-Hour Wind Speed Chart';
       default:
-        return 'Biểu đồ nhiệt độ 24 giờ';
+        return '24-Hour Temperature Chart';
     }
   }
 }
