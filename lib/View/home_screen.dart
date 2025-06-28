@@ -118,7 +118,7 @@ class _WeatherAppHomeScreenState extends ConsumerState<WeatherAppHomeScreen> {
 
   String formatDetailTime(String timeString) {
     final time = DateTime.parse(timeString);
-    return DateFormat('HH\'h\'mm').format(time);
+    return DateFormat('HH:mm').format(time);
   }
 
   Widget _buildDetailInfo() {
